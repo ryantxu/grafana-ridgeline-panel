@@ -1,7 +1,7 @@
 {
   "type": "panel",
-  "name": "Joy Plot",
-  "id": "natel-joy-panel",
+  "name": "RidgeLine",
+  "id": "natel-ridgeline-panel",
 
   "info": {
     "description": "Discrete Events grafana",
@@ -14,14 +14,14 @@
       "large": "img/joy-large.png"
     },
     "links": [
-      {"name": "Project site", "url": "https://github.com/NatelEnergy/grafana-joy-panel"},
+      {"name": "Project site", "url": "https://github.com/NatelEnergy/grafana-ridgeline-panel"},
       {
         "name": "MIT License",
-        "url": "https://github.com/NatelEnergy/grafana-joy-panel/blob/master/LICENSE"
+        "url": "https://github.com/NatelEnergy/grafana-ridgeline-panel/blob/master/LICENSE"
       },
       {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
     ],
-    "screenshots": [{"name": "Single State", "path": "img/screenshot-single-1.png"}],
+    "screenshots": [{"name": "Joy Plot", "path": "img/jd.jpg"}],
     "version": "%VERSION%",
     "updated": "%TODAY%"
   },
