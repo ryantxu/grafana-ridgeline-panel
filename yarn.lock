@@ -374,8 +374,8 @@ chokidar@^1.0.5, chokidar@^1.4.1:
     fsevents "^1.0.0"
 
 ci-info@^1.0.0:
-  version "1.1.2"
-  resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-1.1.2.tgz#03561259db48d0474c8bdc90f5b47b068b6bbfb4"
+  version "1.1.3"
+  resolved "https://registry.yarnpkg.com/ci-info/-/ci-info-1.1.3.tgz#710193264bb05c77b8c90d02f5aaf22216a667b2"
 
 co@^4.6.0:
   version "4.6.0"
@@ -1000,9 +1000,9 @@ graceful-fs@^4.1.2, graceful-fs@^4.1.6, graceful-fs@^4.1.9:
   version "4.1.11"
   resolved "https://registry.yarnpkg.com/graceful-fs/-/graceful-fs-4.1.11.tgz#0e8bdfe4d1ddb8854d64e04ea7c00e2a026e5658"
 
-"grafana-sdk-mocks@github:grafana/grafana-sdk-mocks":
+"grafana-sdk-mocks@github:ryantxu/grafana-sdk-mocks":
   version "1.0.0"
-  resolved "https://codeload.github.com/grafana/grafana-sdk-mocks/tar.gz/82d4b132f1ac9761c969c917382d5fb9988ec632"
+  resolved "https://codeload.github.com/ryantxu/grafana-sdk-mocks/tar.gz/28fd21b47a2a2aaa6ba269e42b5414a3e7c7e754"
 
 grunt-cli@~1.2.0:
   version "1.2.0"
@@ -1730,7 +1730,7 @@ mkdirp@0.5.0:
   dependencies:
     minimist "0.0.8"
 
-moment@^2.18.1:
+moment@^2.21.0:
   version "2.21.0"
   resolved "https://registry.yarnpkg.com/moment/-/moment-2.21.0.tgz#2a114b51d2a6ec9e6d83cf803f838a878d8a023a"
 
@@ -2147,8 +2147,8 @@ raw-body@~2.1.5:
     unpipe "1.0.0"
 
 rc@^1.1.7:
-  version "1.2.5"
-  resolved "https://registry.yarnpkg.com/rc/-/rc-1.2.5.tgz#275cd687f6e3b36cc756baa26dfee80a790301fd"
+  version "1.2.6"
+  resolved "https://registry.yarnpkg.com/rc/-/rc-1.2.6.tgz#eb18989c6d4f4f162c399f79ddd29f3835568092"
   dependencies:
     deep-extend "~0.4.0"
     ini "~1.3.0"
@@ -2472,8 +2472,8 @@ sprintf-js@~1.0.2:
   resolved "https://registry.yarnpkg.com/sprintf-js/-/sprintf-js-1.0.3.tgz#04e6926f662895354f3dd015203633b857297e2c"
 
 sshpk@^1.7.0:
-  version "1.13.1"
-  resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.13.1.tgz#512df6da6287144316dc4c18fe1cf1d940739be3"
+  version "1.14.1"
+  resolved "https://registry.yarnpkg.com/sshpk/-/sshpk-1.14.1.tgz#130f5975eddad963f1d56f92b9ac6c51fa9f83eb"
   dependencies:
     asn1 "~0.2.3"
     assert-plus "^1.0.0"

@@ -11,43 +11,93 @@ import kbn from 'app/core/utils/kbn';
 
 import appEvents from 'app/core/app_events';
 
-class JoyPanelCtrl extends CanvasPanelCtrl {
+//type XAxisTransform = "Hour" | "Day" | "Year";
+
+export class RidgeRow {
+  label: string;
+  values: number[]; // Raw value
+  position: number[] = null; // null if evenly spaced.  Or 0-1 % on the xaxis
+  ms: number[] = null; // Optional
+  ypixel: number; // the y zero line
+}
+
+export class RidgeData {
+  min: number;
+  max: number;
+  delta: number;
+
+  rows: RidgeRow[];
+
+  addData(value: number, ms: number) {
+    console.log('TODO, add nubmer');
+  }
+}
+
+class RidgeDataForDay extends RidgeData {
+  // This expects the data to be ordered oldest to newest
+  static msInDay = 1000 * 60 * 60 * 24.0;
+
+  dayOfYear: number = -1;
+  timeAtStartOfDay: number = -1;
+
+  addData(value: number, ms: number) {
+    if (!value || value < 0) {
+      console.error('SKIP Value', value);
+      return;
+    }
+
+    const t = moment(ms);
+    const doy = t.dayOfYear();
+
+    if (!this.rows) {
+      this.rows = [];
+      this.min = value;
+      this.max = value;
+    }
+
+    if (this.dayOfYear != doy) {
+      let r = new RidgeRow();
+      r.values = [];
+      r.position = [];
+      r.ms = [];
+      r.label = t.format('YYYY-MM-DD');
+      this.timeAtStartOfDay = t.startOf('day').valueOf();
+      this.rows.push(r);
+      this.dayOfYear = doy;
+    }
+    const row = this.rows[this.rows.length - 1];
+    if (value > this.max) {
+      this.max = value;
+    }
+    if (value < this.min) {
+      this.min = value;
+    }
+
+    row.values.push(value);
+    row.position.push((ms - this.timeAtStartOfDay) / RidgeDataForDay.msInDay);
+    row.ms.push(ms);
+  }
+}
+
+class RidgelinePanelCtrl extends CanvasPanelCtrl {
   static templateUrl = 'partials/module.html';
   static scrollable = true;
 
   defaults = {
-    display: 'timeline', // or 'stacked'
+    xtransform: 'Day',
     rowHeight: 50,
-    valueMaps: [{value: 'null', op: '=', text: 'N/A'}],
-    rangeMaps: [{from: 'null', to: 'null', text: 'N/A'}],
-    colorMaps: [{text: 'N/A', color: '#CCC'}],
     metricNameColor: '#000000',
     valueTextColor: '#000000',
     crosshairColor: '#8F070C',
     backgroundColor: 'rgba(128,128,128,0.1)',
     lineColor: 'rgba(0,0,0,0.1)',
-    textSize: 24,
-    extendLastValue: true,
-    writeLastValue: true,
-    writeAllValues: false,
-    writeMetricNames: false,
-    showLegend: true,
-    showLegendNames: true,
-    showLegendValues: true,
-    showLegendPercent: true,
-    highlightOnMouseover: true,
-    expandFromQueryS: 0,
-    legendSortBy: '-ms',
     units: 'short',
   };
 
-  data: any = null;
+  data: RidgeData = null;
   externalPT = false;
-  isTimeline = false;
-  isStacked = false;
+
   hoverPoint: any = null;
-  colorMap: any = {};
-  _colorsPaleteCash: any = null;
   unitFormats: any = null; // only used for editor
   formatter: any = null;
 
@@ -78,72 +128,20 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
 
     this.addEditorTab(
       'Options',
-      'public/plugins/natel-discrete-panel/partials/editor.options.html',
+      'public/plugins/natel-ridgeline-panel/partials/editor.options.html',
       1
+    );
+    this.addEditorTab(
+      'Colors',
+      'public/plugins/natel-ridgeline-panel/partials/editor.colors.html',
+      2
     );
     this.editorTabIndex = 1;
     this.refresh();
   }
 
-  onRender() {
-    if (this.data == null || !this.context) {
-      return;
-    }
-
-    this._updateRenderDimensions();
-    this._updateSelectionMatrix();
-    this._updateCanvasSize();
-
-    this._renderCrosshair();
-  }
-
   clearTT() {
     this.$tooltip.detach();
-  }
-
-  formatValue(val) {
-    if (_.isNumber(val)) {
-      if (this.panel.rangeMaps) {
-        for (let i = 0; i < this.panel.rangeMaps.length; i++) {
-          let map = this.panel.rangeMaps[i];
-
-          // value/number to range mapping
-          let from = parseFloat(map.from);
-          let to = parseFloat(map.to);
-          if (to >= val && from <= val) {
-            return map.text;
-          }
-        }
-      }
-      if (this.formatter) {
-        return this.formatter(val, this.panel.decimals);
-      }
-    }
-
-    let isNull = _.isNil(val);
-    if (!isNull && !_.isString(val)) {
-      val = val.toString(); // convert everything to a string
-    }
-
-    for (let i = 0; i < this.panel.valueMaps.length; i++) {
-      let map = this.panel.valueMaps[i];
-      // special null case
-      if (map.value === 'null') {
-        if (isNull) {
-          return map.text;
-        }
-        continue;
-      }
-
-      if (val === map.value) {
-        return map.text;
-      }
-    }
-
-    if (isNull) {
-      return 'null';
-    }
-    return val;
   }
 
   // Override the
@@ -162,17 +160,17 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
 
     //    console.log('GOT', dataList);
 
-    let data = [];
+    let data = new RidgeDataForDay();
     _.forEach(dataList, metric => {
       if ('table' === metric.type) {
-        if ('time' !== metric.columns[0].type) {
-          throw new Error('Expected a time column from the table format');
-        }
-        // TODO???
+        throw new Error('Table data not yet supported');
       } else {
-        // TODO???
+        _.forEach(metric.datapoints, point => {
+          data.addData(point[0], point[1]);
+        });
       }
     });
+    data.delta = data.max - data.min;
     this.data = data;
 
     this.onRender();
@@ -182,8 +180,6 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
 
   onConfigChanged(update = false) {
     //console.log( "Config changed...");
-    this.isTimeline = this.panel.display === 'timeline';
-    this.isStacked = this.panel.display === 'stacked';
 
     this.formatter = null;
     if (this.panel.units && 'none' !== this.panel.units) {
@@ -248,48 +244,17 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
 
   onGraphHover(evt, showTT, isExternal) {
     this.externalPT = false;
-    if (this.data && this.data.length) {
+    if (this.data && this.data.rows) {
       let hover = null;
       let j = Math.floor(this.mouse.position.y / this.panel.rowHeight);
       if (j < 0) {
         j = 0;
       }
-      if (j >= this.data.length) {
-        j = this.data.length - 1;
+      if (j >= this.data.rows.length) {
+        j = this.data.rows.length - 1;
       }
 
-      if (this.isTimeline) {
-        hover = this.data[j].changes[0];
-        for (let i = 0; i < this.data[j].changes.length; i++) {
-          if (this.data[j].changes[i].start > this.mouse.position.ts) {
-            break;
-          }
-          hover = this.data[j].changes[i];
-        }
-        this.hoverPoint = hover;
-
-        if (showTT) {
-          this.externalPT = isExternal;
-          this.showTooltip(evt, hover, isExternal);
-        }
-        this.onRender(); // refresh the view
-      } else if (!isExternal) {
-        if (this.isStacked) {
-          hover = this.data[j].legendInfo[0];
-          for (let i = 0; i < this.data[j].legendInfo.length; i++) {
-            if (this.data[j].legendInfo[i].x > this.mouse.position.x) {
-              break;
-            }
-            hover = this.data[j].legendInfo[i];
-          }
-          this.hoverPoint = hover;
-          this.onRender(); // refresh the view
-
-          if (showTT) {
-            this.externalPT = isExternal;
-          }
-        }
-      }
+      // TODO.. process hover
     } else {
       this.$tooltip.detach(); // make sure it is hidden
     }
@@ -298,9 +263,10 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
   onMouseClicked(where) {
     let pt = this.hoverPoint;
     if (pt && pt.start) {
-      let range = {from: moment.utc(pt.start), to: moment.utc(pt.start + pt.ms)};
-      this.timeSrv.setTime(range);
-      this.clear();
+      // let range = {from: moment.utc(pt.start), to: moment.utc(pt.start + pt.ms)};
+      // this.timeSrv.setTime(range);
+      // this.clear();
+      console.log('TODO... click', pt);
     }
   }
 
@@ -318,124 +284,59 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
     this.render();
   }
 
-  _updateRenderDimensions() {
-    this._renderDimensions = {};
+  onRender() {
+    if (!this.data || !this.data.rows || !this.context) {
+      return;
+    }
 
     let rect = (this._renderDimensions.rect = this.wrap.getBoundingClientRect());
-    let rows = (this._renderDimensions.rows = this.data.length);
+    let rows = (this._renderDimensions.rows = this.data.rows.length);
     let rowHeight = (this._renderDimensions.rowHeight = this.panel.rowHeight);
     let height = (this._renderDimensions.height = rowHeight * rows);
     let width = (this._renderDimensions.width = rect.width);
     let rectHeight = (this._renderDimensions.rectHeight = rowHeight);
 
-    let top = 0;
+    let top = rowHeight;
     let elapsed = this.range.to - this.range.from;
 
+    const ctx = this.context;
+    this._updateCanvasSize();
+
+    // Clear the background
+    ctx.fillStyle = this.panel.backgroundColor;
+    ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = this.panel.lineColor;
     this._renderDimensions.matrix = [];
-    _.forEach(this.data, metric => {
-      let positions = [];
+    _.forEach(this.data.rows, row => {
+      ctx.beginPath();
 
-      if (this.isTimeline) {
-        let lastBS = 0;
-        let point = metric.changes[0];
-        for (let i = 0; i < metric.changes.length; i++) {
-          point = metric.changes[i];
-          if (point.start <= this.range.to) {
-            let xt = Math.max(point.start - this.range.from, 0);
-            let x = xt / elapsed * width;
-            positions.push(x);
-          }
+      // https://github.com/epistemex/cardinal-spline-js
+      for (let i = 0; i < row.values.length; i++) {
+        const x = 0 + row.position[i] * width;
+        const y = top - this._calculateHeight(row.values[i]);
+
+        if (i === 0) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
         }
-      }
 
-      if (this.isStacked) {
-        let point = null;
-        let start = this.range.from;
-        for (let i = 0; i < metric.legendInfo.length; i++) {
-          point = metric.legendInfo[i];
-          let xt = Math.max(start - this.range.from, 0);
-          let x = xt / elapsed * width;
-          positions.push(x);
-          start += point.ms;
-        }
+        //ctx.arc(x, y, 1, 0, 2 * Math.PI, true);
+        ctx.stroke();
       }
-
-      this._renderDimensions.matrix.push({
-        y: top,
-        positions: positions,
-      });
 
       top += rowHeight;
     });
   }
 
-  _updateSelectionMatrix() {
-    let selectionPredicates = {
-      all: function() {
-        return true;
-      },
-      crosshairHover: function(i, j) {
-        if (j + 1 === this.data[i].changes.length) {
-          return this.data[i].changes[j].start <= this.mouse.position.ts;
-        }
-        return (
-          this.data[i].changes[j].start <= this.mouse.position.ts &&
-          this.mouse.position.ts < this.data[i].changes[j + 1].start
-        );
-      },
-      mouseX: function(i, j) {
-        let row = this._renderDimensions.matrix[i];
-        if (j + 1 === row.positions.length) {
-          return row.positions[j] <= this.mouse.position.x;
-        }
-        return (
-          row.positions[j] <= this.mouse.position.x &&
-          this.mouse.position.x < row.positions[j + 1]
-        );
-      },
-      metric: function(i) {
-        return this.data[i] === this._selectedMetric;
-      },
-      legendItem: function(i, j) {
-        if (this.data[i] !== this._selectedMetric) {
-          return false;
-        }
-        return this._selectedLegendItem.val === this._getVal(i, j);
-      },
-    };
-
-    function getPredicate() {
-      if (this._selectedLegendItem !== undefined) {
-        return 'legendItem';
-      }
-      if (this._selectedMetric !== undefined) {
-        return 'metric';
-      }
-      if (this.mouse.down !== null) {
-        return 'all';
-      }
-      if (this.panel.highlightOnMouseover && this.mouse.position != null) {
-        if (this.isTimeline) {
-          return 'crosshairHover';
-        }
-        if (this.isStacked) {
-          return 'mouseX';
-        }
-      }
-      return 'all';
-    }
-
-    let pn = getPredicate.bind(this)();
-    let predicate = selectionPredicates[pn].bind(this);
-    this._selectionMatrix = [];
-    for (let i = 0; i < this._renderDimensions.matrix.length; i++) {
-      let rs = [];
-      let r = this._renderDimensions.matrix[i];
-      for (let j = 0; j < r.positions.length; j++) {
-        rs.push(predicate(i, j));
-      }
-      this._selectionMatrix.push(rs);
-    }
+  _calculateHeight(v: number): number {
+    const per = (v - this.data.min) / this.data.delta;
+    const xxx = per * this.panel.rowHeight * 2.5;
+    //  console.log( this.data.min, this.data.max, this.data.delta, v, per, xxx );
+    return xxx;
   }
 
   _updateCanvasSize() {
@@ -447,39 +348,6 @@ class JoyPanelCtrl extends CanvasPanelCtrl {
 
     this.context.scale(this._devicePixelRatio, this._devicePixelRatio);
   }
-
-  _renderCrosshair() {
-    if (this.mouse.down != null) {
-      return;
-    }
-    if (this.mouse.position === null) {
-      return;
-    }
-    if (!this.isTimeline) {
-      return;
-    }
-
-    let ctx = this.context;
-    let rows = this.data.length;
-    let rowHeight = this.panel.rowHeight;
-    let height = this._renderDimensions.height;
-
-    ctx.beginPath();
-    ctx.moveTo(this.mouse.position.x, 0);
-    ctx.lineTo(this.mouse.position.x, height);
-    ctx.strokeStyle = this.panel.crosshairColor;
-    ctx.lineWidth = 1;
-    ctx.stroke();
-
-    // Draw a Circle around the point if showing a tooltip
-    if (this.externalPT && rows > 1) {
-      ctx.beginPath();
-      ctx.arc(this.mouse.position.x, this.mouse.position.y, 3, 0, 2 * Math.PI, false);
-      ctx.fillStyle = this.panel.crosshairColor;
-      ctx.fill();
-      ctx.lineWidth = 1;
-    }
-  }
 }
 
-export {JoyPanelCtrl as PanelCtrl};
+export {RidgelinePanelCtrl as PanelCtrl};

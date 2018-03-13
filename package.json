@@ -25,13 +25,13 @@
   },
   "dependencies": {
     "lodash": "^4.17.4",
-    "moment": "^2.18.1",
+    "moment": "^2.21.0",
     "q": "^1.5.0",
     "systemjs": "^0.19.47"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.74",
-    "grafana-sdk-mocks": "github:grafana/grafana-sdk-mocks",
+    "grafana-sdk-mocks": "github:ryantxu/grafana-sdk-mocks",
     "grunt": "^1.0.1",
     "grunt-contrib-clean": "^1.1.0",
     "grunt-contrib-copy": "^1.0.0",
