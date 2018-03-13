@@ -1,0 +1,33 @@
+{
+  "type": "panel",
+  "name": "Joy Plot",
+  "id": "natel-joy-panel",
+
+  "info": {
+    "description": "Discrete Events grafana",
+    "author": {
+      "name": "Natel Energy"
+    },
+    "keywords": ["joyplot"],
+    "logos": {
+      "small": "img/joy-small.png",
+      "large": "img/joy-large.png"
+    },
+    "links": [
+      {"name": "Project site", "url": "https://github.com/NatelEnergy/grafana-joy-panel"},
+      {
+        "name": "MIT License",
+        "url": "https://github.com/NatelEnergy/grafana-joy-panel/blob/master/LICENSE"
+      },
+      {"name": "Natel Energy", "url": "http://www.natelenergy.com/"}
+    ],
+    "screenshots": [{"name": "Single State", "path": "img/screenshot-single-1.png"}],
+    "version": "%VERSION%",
+    "updated": "%TODAY%"
+  },
+
+  "dependencies": {
+    "grafanaVersion": "4.x.x",
+    "plugins": []
+  }
+}
