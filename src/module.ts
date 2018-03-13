@@ -86,6 +86,7 @@ class RidgelinePanelCtrl extends CanvasPanelCtrl {
   defaults = {
     xtransform: 'Day',
     rowHeight: 50,
+    rowHeightFactor: 2.5,
     metricNameColor: '#000000',
     valueTextColor: '#000000',
     crosshairColor: '#8F070C',
@@ -316,26 +317,30 @@ class RidgelinePanelCtrl extends CanvasPanelCtrl {
       // https://github.com/epistemex/cardinal-spline-js
       for (let i = 0; i < row.values.length; i++) {
         const x = 0 + row.position[i] * width;
-        const y = top - this._calculateHeight(row.values[i]);
+        const y = top - this._calculateHeight(row.values[i], row);
 
         if (i === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
-
-        //ctx.arc(x, y, 1, 0, 2 * Math.PI, true);
-        ctx.stroke();
       }
+      ctx.stroke();
+
+      ctx.fillStyle = this.panel.valueTextColor;
+      ctx.textAlign = 'left';
+      ctx.fillText(row.label, 10, top);
+
+      //ctx.arc(x, y, 1, 0, 2 * Math.PI, true);
 
       top += rowHeight;
     });
   }
 
-  _calculateHeight(v: number): number {
+  _calculateHeight(v: number, row): number {
     const per = (v - this.data.min) / this.data.delta;
-    const xxx = per * this.panel.rowHeight * 2.5;
-    //  console.log( this.data.min, this.data.max, this.data.delta, v, per, xxx );
+    const xxx = per * this.panel.rowHeight * this.panel.rowHeightFactor;
+    //  console.log( row.label, per, this.data.min, this.data.max, this.data.delta, v, xxx );
     return xxx;
   }
 

@@ -34,6 +34,10 @@
           <input type="number" ng-model="ctrl.panel.rowHeight" class="gf-form-input max-width-5" ng-blur="ctrl.render()" min="1"/>
         </div>
         <div class="gf-form">
+          <label class="gf-form-label width-14">Height X</label>
+          <input type="number" ng-model="ctrl.panel.rowHeightFactor" class="gf-form-input max-width-5" ng-blur="ctrl.render()" min="0" max="10" step="0.1"/>
+        </div>
+        <div class="gf-form">
           <label class="gf-form-label width-14">Text Size</label>
           <input type="number" ng-model="ctrl.panel.textSize" class="gf-form-input max-width-5" ng-blur="ctrl.render()" min="1"/>
         </div>
