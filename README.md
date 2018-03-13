@@ -1,6 +1,6 @@
-## Joy Plot Panel
+## Ridgeline Plot Panel
 
-Show joy plots in grafana
+Show ridgeline plots in grafana
 
 ### Screenshots
 
@@ -26,4 +26,5 @@ yarn pretty
 
 ##### v0.0.1 (not yet released)
 
+* rename `joyplot` to `ridgeline` plot. See: [goodby joyplots](http://serialmentor.com/blog/2017/9/15/goodbye-joyplots)
 * First working version

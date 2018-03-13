@@ -1,7 +1,7 @@
 {
-  "name": "natel-joy-panel",
+  "name": "natel-ridgeline-panel",
   "version": "0.0.1",
-  "description": "Joy Plots in grafana",
+  "description": "Ridgeline Plots in grafana",
   "scripts": {
     "build": "grunt",
     "test": "./node_modules/karma/bin/karma start",
@@ -10,7 +10,7 @@
   },
   "author": "ryantxu",
   "license": "MIT",
-  "keywords": ["joyplot", "grafana", "plugin", "panel"],
+  "keywords": ["ridgeline", "joyplot", "grafana", "plugin", "panel"],
   "repository": {
     "type": "git",
     "url": "https://github.com/NatelEnergy/grafana-discrete-panel.git"
